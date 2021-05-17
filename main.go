@@ -2,6 +2,7 @@ package main
 
 import (
 	"LogServer/dao"
+	"LogServer/service"
 	"LogServer/util"
 )
 
@@ -12,5 +13,11 @@ func main() {
 	cookieDao.Init(db)
 	logDao := &dao.LogDao{}
 	logDao.Init(db)
+	userdao := &dao.UserDao{}
+	userdao.Init(db)
+	server := service.LogServer{}
+	server.Init(logDao, cookieDao, userdao)
+	server.ListenAndServer()
+	util.PauseForRun()
 
 }
