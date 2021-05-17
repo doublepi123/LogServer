@@ -19,5 +19,4 @@ func main() {
 	server.Init(logDao, cookieDao, userdao)
 	server.ListenAndServer()
 	util.PauseForRun()
-
 }

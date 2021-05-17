@@ -17,3 +17,11 @@ func (dao UserDao) Check(username string, password string) bool {
 	dao.db.DB.Where("username = ? ", username).First(user)
 	return util.CmpPWD(user.Password, password)
 }
+
+func (dao UserDao) Add(username string, password string) error {
+	user := &entity.UserEntity{
+		Username: username,
+		Password: util.GetPWD(password),
+	}
+	return dao.db.DB.Create(user).Error
+}
