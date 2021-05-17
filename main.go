@@ -15,8 +15,10 @@ func main() {
 	logDao.Init(db)
 	userdao := &dao.UserDao{}
 	userdao.Init(db)
+	messagedao := &dao.MessageDao{}
+	messagedao.Init(db)
 	server := service.LogServer{}
-	server.Init(logDao, cookieDao, userdao)
+	server.Init(logDao, cookieDao, userdao, messagedao)
 	server.ListenAndServer()
 	util.PauseForRun()
 }
