@@ -1,9 +1,7 @@
 package dao
 
 import (
-	"crypto/sha256"
-	"fmt"
-	"math/rand"
+	"LogServer/util"
 	"time"
 )
 
@@ -21,13 +19,13 @@ func (dao CookieDao) GetUsername(userid string) (string, error) {
 	return username, err
 }
 func (dao CookieDao) generateUserid() string {
-	return fmt.Sprint(sha256.Sum256([]byte(time.Now().String() + fmt.Sprint(rand.Uint64()))))
+	return util.GetPWD(string(time.Now().Unix()))
 }
 
-func (dao CookieDao) SetCookie(username string) error {
-	userid := time.UTC.String() + dao.generateUserid() + fmt.Sprint(sha256.Sum256([]byte(username)))
+func (dao CookieDao) SetCookie(username string) (string, error) {
+	userid := dao.generateUserid() + util.GetPWD(username)
 	err := dao.db.Redis.Set(userid, username, ValidTimeForCookie).Err()
-	return err
+	return userid, err
 }
 
 func (dao CookieDao) UpdateCookie(userid string) error {

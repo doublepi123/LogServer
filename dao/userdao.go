@@ -19,6 +19,7 @@ func (dao UserDao) Check(username string, password string) bool {
 }
 
 func (dao UserDao) Add(username string, password string) error {
+	dao.db.DB.AutoMigrate(&entity.UserEntity{})
 	user := &entity.UserEntity{
 		Username: username,
 		Password: util.GetPWD(password),

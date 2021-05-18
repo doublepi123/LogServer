@@ -5,5 +5,5 @@ type MessageDao struct {
 }
 
 func (dao MessageDao) LogAdd(level string, message string) {
-	dao.db.Redis.LPush(level, message, 0)
+	dao.db.Redis.LPush(level, message)
 }

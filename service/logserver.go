@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"time"
 )
 
 type LogServer struct {
@@ -25,11 +24,11 @@ func (server *LogServer) Init(logDao *dao.LogDao, cookieDao *dao.CookieDao, user
 }
 
 func (server *LogServer) INFO(message string) {
-	server.message.LogAdd("INFO", message)
+	server.message.LogAdd("INFO", "LogServer:"+util.GetNowTimeFormat()+" "+message)
 }
 
 func (server *LogServer) ERROR(message string) {
-	server.message.LogAdd("ERROR", message)
+	server.message.LogAdd("ERROR", "LogServer:"+util.GetNowTimeFormat()+" "+message)
 }
 
 func (server *LogServer) login(c *gin.Context) {
@@ -40,18 +39,19 @@ func (server *LogServer) login(c *gin.Context) {
 	}
 	if user.Username == "" || user.Password == "" {
 		c.JSON(http.StatusForbidden, gin.H{"code": 1, "msg": "用户名或密码为空"})
-		server.INFO(c.Request.Host + time.Now().String() + "fail")
+		server.INFO(c.ClientIP() + " " + "fail")
 		return
 	}
 	if server.user.Check(user.Username, user.Password) {
 		c.JSON(http.StatusOK, gin.H{"code": 0, "msg": "登入成功"})
-		server.INFO(c.Request.Host + time.Now().String() + "success")
-		err := server.cookie.SetCookie(user.Username)
+		server.INFO(c.Request.Host + " " + "success")
+		userid, err := server.cookie.SetCookie(user.Username)
+		fmt.Println(userid)
 		if err != nil {
-			server.ERROR(c.Request.Host + time.Now().String() + fmt.Sprint(err))
+			server.ERROR(c.ClientIP() + " " + fmt.Sprint(err))
 			fmt.Println(err)
 		}
-		util.SetCookieToClient(c, user.Username)
+		util.SetCookieToClient(c, userid)
 		return
 	}
 	c.JSON(http.StatusForbidden, gin.H{"code": -1, "msg": "用户名或密码错误"})
@@ -60,27 +60,54 @@ func (server LogServer) authcheck() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userid, err := c.Cookie("userid")
 		if err != nil {
-			server.INFO(c.Request.Host + time.Now().String() + "###not auth###" + c.Request.RequestURI)
+			server.INFO(c.ClientIP() + "###not auth###" + c.Request.RequestURI)
 			c.JSON(http.StatusForbidden, gin.H{"code": -1, "msg": "NOT LOGIN"})
 			c.Abort()
 			return
 		}
 		_, err = server.cookie.GetUsername(userid)
 		if err != nil {
-			server.INFO(c.Request.Host + time.Now().String() + "###not auth###" + c.Request.RequestURI)
+			server.INFO(c.ClientIP() + "###not auth###" + c.Request.RequestURI)
 			c.JSON(http.StatusForbidden, gin.H{"code": -1, "msg": "NOT LOGIN"})
 			c.Abort()
 			return
 		}
-
+		c.Next()
 	}
 }
 
+func (server *LogServer) connectlog() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		server.INFO(c.ClientIP() + " " + c.Request.Host + " " + c.Request.RequestURI + " " + c.Request.Method)
+		c.Next()
+	}
+}
+
+func (server *LogServer) getItem(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{
+		"INFO":  "",
+		"ERROR": "",
+	})
+
+}
 func (server *LogServer) ListenAndServer() {
 	r := gin.Default()
-	r.POST("/api/login")
-	log := r.Group("/api/log")
-	log.Use(server.authcheck())
+	server.user.Add("root", "toor")
+	root := r.Group("/api")
+	{
+		root.Use(server.connectlog())
+		root.POST("/login", server.login)
+		log := root.Group("/log")
+		{
+			log.Use(server.authcheck())
+			log.GET("/item", server.getItem)
+
+		}
+	}
 	err := r.Run("127.0.0.1:9998")
-	fmt.Println(err)
+	if err != nil {
+		fmt.Println(err)
+		server.ERROR(fmt.Sprint(err))
+	}
+
 }
