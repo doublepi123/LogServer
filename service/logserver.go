@@ -84,9 +84,15 @@ func (server *LogServer) connectlog() gin.HandlerFunc {
 }
 
 func (server *LogServer) getItem(c *gin.Context) {
+	items, err := server.log.GetItems()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"msg": "无法获取items列表",
+		})
+		return
+	}
 	c.JSON(http.StatusOK, gin.H{
-		"INFO":  "",
-		"ERROR": "",
+		"Items": items,
 	})
 
 }
