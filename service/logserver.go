@@ -72,6 +72,8 @@ func (server LogServer) authcheck() gin.HandlerFunc {
 			c.Abort()
 			return
 		}
+		server.cookie.UpdateCookie(userid)
+		util.SetCookieToClient(c, userid)
 		c.Next()
 	}
 }
@@ -96,7 +98,7 @@ func (server *LogServer) getItem(c *gin.Context) {
 }
 
 func (server *LogServer) findlog(c *gin.Context) {
-	m := entity.ItemReturn{}
+	m := &entity.ItemReturn{}
 	err := c.ShouldBind(m)
 	ans, err := server.log.GetLog(m.Name)
 	if err != nil {

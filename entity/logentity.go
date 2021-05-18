@@ -1,10 +1,19 @@
 package entity
 
-import "gorm.io/gorm"
+import (
+	"gorm.io/gorm"
+	"time"
+)
 
 type Item struct {
 	gorm.Model
 	Name string
+}
+
+type LogReturn struct {
+	CreatedAt time.Time
+	Level     string
+	Message   string
 }
 
 type ItemReturn struct {

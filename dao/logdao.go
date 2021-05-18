@@ -12,8 +12,8 @@ func (dao LogDao) GetItems() (*[]entity.ItemReturn, error) {
 	return &items, err
 }
 
-func (dao LogDao) GetLog(level string) (*[]entity.LogEntity, error) {
-	var logs []entity.LogEntity
+func (dao LogDao) GetLog(level string) (*[]entity.LogReturn, error) {
+	var logs []entity.LogReturn
 	err := dao.db.DB.Raw("SELECT * FROM " + level).Scan(&logs).Error
 	return &logs, err
 }
