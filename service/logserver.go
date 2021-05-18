@@ -104,7 +104,7 @@ func (server *LogServer) ListenAndServer() {
 
 		}
 	}
-	err := r.Run("127.0.0.1:9998")
+	err := r.Run("0.0.0.0:39998")
 	if err != nil {
 		fmt.Println(err)
 		server.ERROR(fmt.Sprint(err))
