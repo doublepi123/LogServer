@@ -43,7 +43,6 @@ func (server *LogServer) login(c *gin.Context) {
 		return
 	}
 	if server.user.Check(user.Username, user.Password) {
-		c.JSON(http.StatusOK, gin.H{"code": 0, "msg": "登入成功"})
 		server.INFO(c.Request.Host + " " + "success")
 		userid, err := server.cookie.SetCookie(user.Username)
 		fmt.Println(userid)
@@ -52,6 +51,7 @@ func (server *LogServer) login(c *gin.Context) {
 			fmt.Println(err)
 		}
 		util.SetCookieToClient(c, userid)
+		c.JSON(http.StatusOK, gin.H{"code": 0, "msg": "登入成功"})
 		return
 	}
 	c.JSON(http.StatusForbidden, gin.H{"code": -1, "msg": "用户名或密码错误"})
