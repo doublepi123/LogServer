@@ -91,11 +91,25 @@ func (server *LogServer) getItem(c *gin.Context) {
 		})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{
-		"Items": items,
-	})
+	c.JSON(http.StatusOK, items)
 
 }
+
+func (server *LogServer) findlog(c *gin.Context) {
+	m := entity.ItemReturn{}
+	err := c.ShouldBind(m)
+	ans, err := server.log.GetLog(m.Name)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code": -1,
+			"msg":  err,
+		})
+		return
+	}
+	c.JSON(http.StatusOK, ans)
+	return
+}
+
 func (server *LogServer) ListenAndServer() {
 	r := gin.Default()
 	server.user.Add("root", "toor")
@@ -107,7 +121,7 @@ func (server *LogServer) ListenAndServer() {
 		{
 			log.Use(server.authcheck())
 			log.GET("/item", server.getItem)
-
+			log.POST("/find", server.findlog)
 		}
 	}
 	err := r.Run("0.0.0.0:39998")
