@@ -124,6 +124,55 @@ func (server *LogServer) ListenAndServer() {
 			log.Use(server.authcheck())
 			log.GET("/item", server.getItem)
 			log.POST("/find", server.findlog)
+			log.POST("/count", func(c *gin.Context) {
+				m := struct {
+					Name string
+				}{}
+				err := c.ShouldBind(&m)
+				if err != nil {
+					fmt.Println(err)
+					c.JSON(http.StatusBadRequest, gin.H{
+						"msg": err,
+					})
+					return
+				}
+				count, err := server.log.Count(m.Name)
+				if err != nil {
+					fmt.Println(err)
+					c.JSON(http.StatusBadRequest, gin.H{
+						"msg": err,
+					})
+					return
+				}
+				c.JSON(http.StatusOK, gin.H{
+					"count": count,
+				})
+
+			})
+			log.POST("/select", func(c *gin.Context) {
+				m := struct {
+					Name string
+					From int
+					To   int
+				}{}
+				err := c.ShouldBind(&m)
+				if err != nil {
+					fmt.Println(err)
+					c.JSON(http.StatusBadRequest, gin.H{
+						"msg": err,
+					})
+					return
+				}
+				ans, err := server.log.Select(m.Name, m.From, m.To)
+				if err != nil {
+					c.JSON(http.StatusBadRequest, gin.H{
+						"msg": err,
+					})
+					return
+				}
+				c.JSON(http.StatusOK, ans)
+
+			})
 		}
 	}
 	err := r.Run("0.0.0.0:39998")
