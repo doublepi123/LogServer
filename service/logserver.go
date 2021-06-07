@@ -124,6 +124,30 @@ func (server *LogServer) ListenAndServer() {
 			log.Use(server.authcheck())
 			log.GET("/item", server.getItem)
 			log.POST("/find", server.findlog)
+			log.GET("/rinfo", func(c *gin.Context) {
+				ans, err := server.log.GetRecentInfo()
+				if err != nil {
+					server.ERROR(fmt.Sprint(err))
+					fmt.Println(err)
+					c.JSON(http.StatusInternalServerError, gin.H{
+						"msg": fmt.Sprint(err),
+					})
+					return
+				}
+				c.JSON(http.StatusOK, ans)
+			})
+			log.GET("/rerror", func(c *gin.Context) {
+				ans, err := server.log.GetRecentError()
+				if err != nil {
+					server.ERROR(fmt.Sprint(err))
+					fmt.Println(err)
+					c.JSON(http.StatusInternalServerError, gin.H{
+						"msg": fmt.Sprint(err),
+					})
+					return
+				}
+				c.JSON(http.StatusOK, ans)
+			})
 			log.POST("/count", func(c *gin.Context) {
 				m := struct {
 					Name string

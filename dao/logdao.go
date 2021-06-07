@@ -3,6 +3,7 @@ package dao
 import (
 	"LogServer/entity"
 	"fmt"
+	"strings"
 )
 
 type LogDao struct {
@@ -19,6 +20,46 @@ func (dao LogDao) GetLog(level string) (*[]entity.LogReturn, error) {
 	var logs []entity.LogReturn
 	err := dao.db.DB.Raw("SELECT * FROM " + level).Scan(&logs).Error
 	return &logs, err
+}
+
+func (dao LogDao) GetRecentInfo() (*[]entity.LogReturn, error) {
+	t, err := dao.GetItems()
+	if err != nil {
+		return nil, err
+	}
+	logs := *t
+	l := 0
+	for i := range logs {
+		if strings.Contains(strings.ToUpper(logs[i].Name), "INFO") {
+			l = i
+		}
+	}
+	var ans []entity.LogReturn
+	err = dao.db.DB.Raw("SELECT * FROM " + logs[l].Name + " order by id desc limit 10").Find(&ans).Error
+	if err != nil {
+		return nil, err
+	}
+	return &ans, err
+}
+
+func (dao LogDao) GetRecentError() (*[]entity.LogReturn, error) {
+	t, err := dao.GetItems()
+	if err != nil {
+		return nil, err
+	}
+	logs := *t
+	l := 0
+	for i := range logs {
+		if strings.Contains(strings.ToUpper(logs[i].Name), "ERROR") {
+			l = i
+		}
+	}
+	var ans []entity.LogReturn
+	err = dao.db.DB.Raw("SELECT * FROM " + logs[l].Name + " order by id desc limit 10").Find(&ans).Error
+	if err != nil {
+		return nil, err
+	}
+	return &ans, err
 }
 
 func (dao LogDao) Select(name string, from int, to int) (*[]entity.LogReturn, error) {
