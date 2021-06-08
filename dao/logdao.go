@@ -22,6 +22,18 @@ func (dao LogDao) GetLog(level string) (*[]entity.LogReturn, error) {
 	return &logs, err
 }
 
+func (dao LogDao) CountPic() (int64, error) {
+	var count int64
+	err := dao.db.DB.Model(&entity.PictureEntity{}).Count(&count).Error
+	return count, err
+}
+
+func (dao LogDao) SelectPic(from int, to int) (*[]entity.PictureEntity, error) {
+	var pics []entity.PictureEntity
+	err := dao.db.DB.Raw("SELECT * FROM pitcute_entities LIMIT " + fmt.Sprint(from) + " , " + fmt.Sprint(to-from)).Scan(&pics).Error
+	return &pics, err
+}
+
 func (dao LogDao) GetRecentInfo() (*[]entity.LogReturn, error) {
 	t, err := dao.GetItems()
 	if err != nil {

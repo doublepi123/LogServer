@@ -119,6 +119,46 @@ func (server *LogServer) ListenAndServer() {
 	{
 		root.Use(server.connectlog())
 		root.POST("/login", server.login)
+		pic := root.Group("/picture")
+		{
+			pic.Use(server.authcheck())
+
+			pic.GET("/count", func(c *gin.Context) {
+				count, err := server.log.CountPic()
+				if err != nil {
+					fmt.Println(err)
+					c.JSON(http.StatusInternalServerError, gin.H{
+						"error": fmt.Sprint(err),
+					})
+				}
+				c.JSON(http.StatusOK, gin.H{
+					"count": count,
+				})
+			})
+
+			pic.POST("/select", func(c *gin.Context) {
+				m := struct {
+					From int
+					To   int
+				}{}
+				err := c.ShouldBind(&m)
+				if err != nil {
+					fmt.Println(err)
+					c.JSON(http.StatusBadRequest, gin.H{
+						"msg": err,
+					})
+					return
+				}
+				ans, err := server.log.SelectPic(m.From, m.To)
+				if err != nil {
+					c.JSON(http.StatusBadRequest, gin.H{
+						"msg": err,
+					})
+					return
+				}
+				c.JSON(http.StatusOK, ans)
+			})
+		}
 		log := root.Group("/log")
 		{
 			log.Use(server.authcheck())
