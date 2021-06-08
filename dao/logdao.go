@@ -65,7 +65,7 @@ func (dao LogDao) GetRecentError() (*[]entity.LogReturn, error) {
 func (dao LogDao) Select(name string, from int, to int) (*[]entity.LogReturn, error) {
 	var logs []entity.LogReturn
 	fmt.Println(name, from, to)
-	err := dao.db.DB.Raw("SELECT * FROM " + name + " LIMIT " + fmt.Sprint(to-from) + "," + fmt.Sprint(from)).Scan(&logs).Error
+	err := dao.db.DB.Raw("SELECT * FROM " + name + " LIMIT " + fmt.Sprint(from) + "," + fmt.Sprint(to-from)).Scan(&logs).Error
 	return &logs, err
 }
 
